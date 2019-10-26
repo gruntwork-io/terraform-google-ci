@@ -17,6 +17,27 @@ and version control for your code. You can find out more on the [Cloud Source Re
 
 ## Overview
 
+1. Next configure `kubectl` to use the GKE cluster
+
+```
+$ gcloud container clusters get-credentials example-private-cluster --region europe-west3
+```
+
+```
+$ kubectl expose deployment test-repo2 --type=LoadBalancer --port 80 --target-port 8080
+```
+
+```
+$ kubectl get services -w
+```
+
+Once you’re done testing, you may want to clean up all the infrastructure you’ve deployed so GCP doesn’t charge you money for it. First, delete the
+Kubernetes Service:
+
+```bash
+$ kubectl delete service test-repo2
+```
+
 ### Manually Submitting Builds
 
 ```bash

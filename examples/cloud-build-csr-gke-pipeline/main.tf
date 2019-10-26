@@ -67,7 +67,7 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
   #    args = ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA", "."]
   #  }
   #
-  # TODO - other steps
+  # TODO - add other steps
   #}
 
   depends_on = [google_sourcerepo_repository.repo]
@@ -188,9 +188,6 @@ module "gke_service_account" {
   name        = var.cluster_service_account_name
   project     = var.project
   description = var.cluster_service_account_description
-
-  # cloud build
-  #service_account_roles
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
