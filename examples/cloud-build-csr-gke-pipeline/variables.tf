@@ -23,14 +23,14 @@ variable "location" {
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "repository" {
-  description = "Name of the Google Cloud Source Repository"
+variable "repository_name" {
+  description = "Name of the Google Cloud Source Repository."
   type        = string
-  default     = "test-repo"
+  default     = "example-repo"
 }
 
 variable "branch_name" {
-  description = "Example branch name"
+  description = "Example branch name used to trigger builds."
   type        = string
   default     = "master"
 }

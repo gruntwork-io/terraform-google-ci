@@ -51,4 +51,4 @@ Cloud Build executes your builds using a service account, a special Google accou
 account is [PROJECT_NUMBER]@cloudbuild.gserviceaccount.com. When you enable the Cloud Build API, the service account is automatically created and granted the
 Cloud Build Service Account role for your project. This role is sufficient for several tasks, including fetching code from Cloud Source Repositories, pushing and
 pulling Docker images to Container Registry, however it does not allow Cloud Build to deploy to Kubernetes Engine clusters. Therefore you need to manually enable
-your service account to perform these actions by granting the account additional IAM roles.
+your service account to perform these actions by granting the account additional IAM roles. For more information, refer to: https://cloud.google.com/cloud-build/docs/securing-builds/set-service-account-permissions.

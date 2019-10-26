@@ -31,7 +31,7 @@ provider "google-beta" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_sourcerepo_repository" "repo" {
-  name = var.repository
+  name = var.repository_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -39,11 +39,11 @@ resource "google_sourcerepo_repository" "repo" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_cloudbuild_trigger" "cloud_build_trigger" {
-  description = "Trigger Git repository ${var.repository} / ${var.branch_name}"
+  description = "Trigger Git repository ${var.repository_name} / ${var.branch_name}"
 
   trigger_template {
     branch_name = var.branch_name
-    repo_name   = var.repository
+    repo_name   = var.repository_name
   }
 
   # These substitutions have been defined in the sample app's cloudbuild.yaml file.
