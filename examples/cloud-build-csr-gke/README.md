@@ -18,8 +18,8 @@ and version control for your code. You can find out more on the [Cloud Source Re
 
 ## Overview
 
-In this guide we will walk through the steps necessary to set up a CI/CD pipeline using GitHub, Google Cloud Build and a GKE
-cluster. Here are the steps:
+In this guide we will walk through the steps necessary to set up a CI/CD pipeline using Cloud Source Repositories, Cloud
+Build and a GKE cluster. Here are the steps:
 
 1. [Install the necessary tools](#installing-necessary-tools)
 1. [Configure Cloud Build](#configuring-cloud-build)
@@ -59,7 +59,8 @@ For more information on the Cloud Build service account, refer to Appendix A at 
 
 ## Apply the Terraform Code
 
-Now that we have installed the GitHub app, we are ready to deploy all of the example resources and also set up the Google Cloud Build triggers!
+Now that we have configured Cloud Build, we are ready to deploy all of the example resources and also set up the Cloud
+Build triggers!
 
 1. If you haven't already, clone this repo:
    - `$ git clone https://github.com/gruntwork-io/terraform-google-ci.git`
