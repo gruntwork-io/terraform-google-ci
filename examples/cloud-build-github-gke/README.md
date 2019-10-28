@@ -104,9 +104,9 @@ This Terraform code will:
 - Deploy a GCR repository for storing build artifacts
 - Create a Cloud Build Trigger to trigger builds in response to GitHub repo changes.
 
-At the end of `terraform apply`, you should now have a working CI/CD pipeline deployed on Google Cloud Platform.
+At the end of `terraform apply`, you should now have a working CI/CD pipeline deployed in Google Cloud Platform.
 
-## Triggering a build
+## Triggering a Build
 
 To trigger a build we need to commit and push some changes to the GitHub repo:
 
