@@ -18,13 +18,38 @@ provider "google" {
   version = "~> 2.10"
   project = var.project
   region  = var.region
+
+  scopes = [
+    # Default scopes
+    "https://www.googleapis.com/auth/compute",
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/ndev.clouddns.readwrite",
+    "https://www.googleapis.com/auth/devstorage.full_control",
+
+    # Required for google_client_openid_userinfo
+    "https://www.googleapis.com/auth/userinfo.email",
+  ]
 }
 
 provider "google-beta" {
   version = "~> 2.10"
   project = var.project
   region  = var.region
+
+  scopes = [
+    # Default scopes
+    "https://www.googleapis.com/auth/compute",
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/ndev.clouddns.readwrite",
+    "https://www.googleapis.com/auth/devstorage.full_control",
+
+    # Required for google_client_openid_userinfo
+    "https://www.googleapis.com/auth/userinfo.email",
+  ]
 }
+
+# Use this datasource to access the Terraform account's email for Cloud Source Repository configuration.
+data "google_client_openid_userinfo" "terraform_user" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DEPLOY A GOOGLE CLOUD SOURCE REPOSITORY
@@ -39,7 +64,8 @@ resource "google_sourcerepo_repository" "repo" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_cloudbuild_trigger" "cloud_build_trigger" {
-  description = "Trigger Git repository ${var.repository_name} / ${var.branch_name}"
+  provider    = "google-beta"
+  description = "Cloud Source Repository Trigger ${var.repository_name} (${var.branch_name})"
 
   trigger_template {
     branch_name = var.branch_name
@@ -47,8 +73,9 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
   }
 
   # These substitutions have been defined in the sample app's cloudbuild.yaml file.
-  # See: https://github.com/gruntwork-io/sample-app-docker/blob/master/cloudbuild.yaml#L37
+  # See: https://github.com/gruntwork-io/sample-app-docker/blob/master/cloudbuild.yaml#L40
   substitutions = {
+    _GCR_REGION           = var.gcr_region
     _GKE_CLUSTER_LOCATION = var.location
     _GKE_CLUSTER_NAME     = var.cluster_name
   }
@@ -57,20 +84,57 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
   # Either a filename or build template (below) must be provided.
   filename = "cloudbuild.yaml"
 
-  # Remove the filename argument above and uncomment the code below if you'd prefer to define your build
-  # steps in IaC code.
-  #build {
-  #  images = ["gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA"]
+  # Remove the filename and substitutions arguments above and uncomment the code below if you'd prefer to define your
+  # build steps in Terraform code.
+  # build {
+  #   # install the app dependencies
+  #   step {
+  #     name = "gcr.io/cloud-builders/npm"
+  #     args = ["install"]
+  #   }
   #
-  #  step {
-  #    name = "gcr.io/cloud-builders/docker"
-  #    args = ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA", "."]
-  #  }
+  #   # execute the tests
+  #   step {
+  #     name = "gcr.io/cloud-builders/npm"
+  #     args = ["run", "test"]
+  #   }
   #
-  # TODO - add other steps
-  #}
+  #   # build an artifact using the docker builder
+  #   step {
+  #     name = "gcr.io/cloud-builders/docker"
+  #     args = ["build", "--build-arg", "NODE_ENV=production", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA", "."]
+  #   }
+  #
+  #   # push the artifact to a GCR repository
+  #   step {
+  #     name = "gcr.io/cloud-builders/docker"
+  #     args = ["push", "${var.gcr_region}.gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA"]
+  #   }
+  #
+  #   # deploy the app to a GKE cluster using the `gke-deploy` builder and expose it
+  #   # using a load balancer on port 80.
+  #   # https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gke-deploy
+  #   step {
+  #     name = "gcr.io/cloud-builders/gke-deploy"
+  #     args = ["run", "--image=${var.gcr_region}.gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA", "--location", "${var.location}", "--cluster", "${var.cluster_name}", "--expose", "80"]
+  #   }
+  # }
 
   depends_on = [google_sourcerepo_repository.repo]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CONFIGURE THE GCR REGISTRY TO STORE THE CLOUD BUILD ARTIFACTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "gcr_registry" {
+  # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "github.com/gruntwork-io/terraform-google-ci.git//modules/gcr-registry?ref=v0.1.0"
+  source = "../../modules/gcr-registry"
+
+  project         = var.project
+  registry_region = var.gcr_region
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -191,11 +255,11 @@ module "gke_service_account" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ALLOW THE CUSTOM SERVICE ACCOUNT TO PULL IMAGES FROM THE GCR REPO
+# ALLOW THE CUSTOM SERVICE ACCOUNT TO PULL IMAGES FROM THE GCR REGISTRY
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_storage_bucket_iam_member" "member" {
-  bucket = "artifacts.${var.project}.appspot.com"
+  bucket = module.gcr_registry.bucket
   role   = "roles/storage.objectViewer"
   member = "serviceAccount:${module.gke_service_account.email}"
 }
@@ -220,4 +284,13 @@ resource "random_string" "suffix" {
   length  = 4
   special = false
   upper   = false
+}
+
+# ------------------------------------------------------------------------------
+# PREPARE LOCALS
+# ------------------------------------------------------------------------------
+
+locals {
+  # Generate a Git friendly URL
+  repository_git_url = "ssh://${data.google_client_openid_userinfo.terraform_user.email}@${replace(google_sourcerepo_repository.repo.url, "https://", "")}"
 }

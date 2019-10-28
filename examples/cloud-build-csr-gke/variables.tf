@@ -23,6 +23,12 @@ variable "location" {
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "gcr_region" {
+  description = "Name of the GCP region where the GCR registry is located."
+  type        = string
+  default     = "eu"
+}
+
 variable "repository_name" {
   description = "Name of the Google Cloud Source Repository."
   type        = string
