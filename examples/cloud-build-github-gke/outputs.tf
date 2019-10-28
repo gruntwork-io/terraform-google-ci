@@ -1,7 +1,7 @@
-#output "repository_url" {
-#  description = "URL to clone the repository from Google Cloud Source Repositories."
-#  value       = google_sourcerepo_repository.repo.url
-#}
+output "registry_url" {
+  description = "The URL at which the GCR registry can be accessed."
+  value       = module.gcr_registry.registry_url
+}
 
 output "cluster_endpoint" {
   description = "The IP address of the cluster master."

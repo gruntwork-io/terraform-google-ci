@@ -1,6 +1,6 @@
 # Cloud Build and GitHub Example
 
-The following example shows how you can setup an automated CI/CD pipeline using [Google Cloud Build](https://cloud.google.com/cloud-build/)
+The following example shows how you can set up an automated CI/CD pipeline using [Google Cloud Build](https://cloud.google.com/cloud-build/)
 and a [Google Kubernetes Engine (GKE) cluster](https://cloud.google.com/kubernetes-engine/) that is triggered from
 [GitHub](https://github.com).
 

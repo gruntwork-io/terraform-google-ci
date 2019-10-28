@@ -43,7 +43,7 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
   }
 
   # These substitutions have been defined in the sample app's cloudbuild.yaml file.
-  # See: https://github.com/gruntwork-io/sample-app-docker/blob/master/cloudbuild.yaml#L37
+  # See: https://github.com/gruntwork-io/sample-app-docker/blob/master/cloudbuild.yaml#L40
   substitutions = {
     _GCR_REGION           = var.gcr_region
     _GKE_CLUSTER_LOCATION = var.location
@@ -75,7 +75,7 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
   #     args = ["build", "--build-arg", "NODE_ENV=production", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA", "."]
   #   }
   #
-  #   # push the artifact to a GCR repository 
+  #   # push the artifact to a GCR repository
   #   step {
   #     name = "gcr.io/cloud-builders/docker"
   #     args = ["push", "${var.gcr_region}.gcr.io/$PROJECT_ID/$REPO_NAME:$SHORT_SHA"]
