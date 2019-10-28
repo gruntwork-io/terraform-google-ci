@@ -3,11 +3,6 @@ output "repository_http_url" {
   value       = google_sourcerepo_repository.repo.url
 }
 
-output "repository_git_url" {
-  description = "Git URL to clone or push to Cloud Source Repository."
-  value       = local.repository_git_url
-}
-
 output "registry_url" {
   description = "The URL at which the GCR registry can be accessed."
   value       = module.gcr_registry.registry_url

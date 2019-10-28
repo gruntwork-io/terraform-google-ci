@@ -18,38 +18,13 @@ provider "google" {
   version = "~> 2.10"
   project = var.project
   region  = var.region
-
-  scopes = [
-    # Default scopes
-    "https://www.googleapis.com/auth/compute",
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/ndev.clouddns.readwrite",
-    "https://www.googleapis.com/auth/devstorage.full_control",
-
-    # Required for google_client_openid_userinfo
-    "https://www.googleapis.com/auth/userinfo.email",
-  ]
 }
 
 provider "google-beta" {
   version = "~> 2.10"
   project = var.project
   region  = var.region
-
-  scopes = [
-    # Default scopes
-    "https://www.googleapis.com/auth/compute",
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/ndev.clouddns.readwrite",
-    "https://www.googleapis.com/auth/devstorage.full_control",
-
-    # Required for google_client_openid_userinfo
-    "https://www.googleapis.com/auth/userinfo.email",
-  ]
 }
-
-# Use this datasource to access the Terraform account's email for Cloud Source Repository configuration.
-data "google_client_openid_userinfo" "terraform_user" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DEPLOY A GOOGLE CLOUD SOURCE REPOSITORY
@@ -284,13 +259,4 @@ resource "random_string" "suffix" {
   length  = 4
   special = false
   upper   = false
-}
-
-# ------------------------------------------------------------------------------
-# PREPARE LOCALS
-# ------------------------------------------------------------------------------
-
-locals {
-  # Generate a Git friendly URL
-  repository_git_url = "ssh://${data.google_client_openid_userinfo.terraform_user.email}@${replace(google_sourcerepo_repository.repo.url, "https://", "")}"
 }
