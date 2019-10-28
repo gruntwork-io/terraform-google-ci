@@ -92,6 +92,18 @@ resource "google_cloudbuild_trigger" "cloud_build_trigger" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE A CUSTOM SERVICE ACCOUNT TO USE WITH THE GKE CLUSTER
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "gke_service_account" {
+  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-service-account?ref=v0.3.8"
+
+  name        = var.cluster_service_account_name
+  project     = var.project
+  description = var.cluster_service_account_description
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE GCR REGISTRY TO STORE THE CLOUD BUILD ARTIFACTS
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -103,10 +115,13 @@ module "gcr_registry" {
 
   project         = var.project
   registry_region = var.gcr_region
+
+  # allow the custom service account to pull images from the GCR registry
+  readers = ["serviceAccount:${module.gke_service_account.email}"]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# DEPLOY A PRIVATE CLUSTER IN GOOGLE CLOUD PLATFORM
+# DEPLOY A PRIVATE GKE CLUSTER IN GOOGLE CLOUD PLATFORM
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "gke_cluster" {
@@ -208,28 +223,6 @@ resource "google_container_node_pool" "node_pool" {
     update = "30m"
     delete = "30m"
   }
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE A CUSTOM SERVICE ACCOUNT TO USE WITH THE GKE CLUSTER
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "gke_service_account" {
-  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-service-account?ref=v0.3.8"
-
-  name        = var.cluster_service_account_name
-  project     = var.project
-  description = var.cluster_service_account_description
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ALLOW THE CUSTOM SERVICE ACCOUNT TO PULL IMAGES FROM THE GCR REGISTRY
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "google_storage_bucket_iam_member" "member" {
-  bucket = module.gcr_registry.bucket
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${module.gke_service_account.email}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
