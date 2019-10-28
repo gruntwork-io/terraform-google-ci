@@ -22,7 +22,6 @@ In this guide we will walk through the steps necessary to set up a CI/CD pipelin
 cluster. Here are the steps:
 
 1. [Install the necessary tools](#installing-necessary-tools)
-1. [Prepare a Cloud Source Repository with some source code to build](#preparing-the-cloud-source-repository)
 1. [Configure Cloud Build](#configuring-cloud-build)
 1. [Apply the Terraform code](#apply-the-terraform-code)
 1. [Trigger a build by pushing changes to the Cloud Source Repository](#triggering-a-build)
@@ -43,22 +42,6 @@ post](https://stackoverflow.com/questions/14637979/how-to-permanently-set-path-o
 setting up your `PATH` on Unix, and [this
 post](https://stackoverflow.com/questions/1618280/where-can-i-set-path-to-make-exe-on-windows) for instructions on
 Windows.
-
-## Preparing the Cloud Source Repository Repo
-
-The Terraform code in this example deploys an empty Cloud Source Repository.
-
-For the purposes of this example, we have prepared a [sample GitHub repository](https://github.com/gruntwork-io/sample-app-docker)
-with a basic application to build. We recommend you clone this repository and push it to the Cloud Source Repository that will be
-deployed in this example.
-
-1. Clone the `sample-app-docker` repo to an empty directory outside of this example:
-   - `$ git clone https://github.com/gruntwork-io/sample-app-docker.git`
-1. Add the the Cloud Source Repository as a remote:
-   - `$ git remote google ssh://[EMAIL]@source.developers.google.com:2022/p/[PROJECT_ID]/r/[REPO_NAME]`
-   - **Note:** Be sure to replace the [EMAIL], [PROJECT_ID] and [REPO_NAME] with your values.
-1. Push the sample app to the Cloud Source Repository
-   - `$ git push --all google`
 
 ## Configuring Cloud Build
 
@@ -100,6 +83,7 @@ This Terraform code will:
 
 - Create a VPC network to contain the resources
 - Deploy a publicly accessible GKE cluster
+- Create a repository on Cloud Source Repositories
 - Deploy a GCR repository for storing build artifacts
 - Create a Cloud Build Trigger to trigger builds in response to Cloud Source Repository changes.
 
@@ -107,14 +91,21 @@ At the end of `terraform apply`, you should now have a working CI/CD pipeline de
 
 ## Triggering a Build
 
-To trigger a build we need to commit and push some changes to the Cloud Source Repository:
+To trigger a build we need to commit and push some changes to the Cloud Source Repository. For the purposes of this
+example, we have prepared a [sample GitHub repository](https://github.com/gruntwork-io/sample-app-docker) with a
+basic application. We recommend you clone this repository and push it to the Cloud Source Repository that was created
+in the previous step.
 
-1. `$ echo $(date) >> test.txt`
-1. `$ git add test.txt && git commit -m 'test commit'`
-1. `$ git push --all google`
+1. Clone the `sample-app-docker` repo to an empty directory outside of this example:
+   - `$ git clone https://github.com/gruntwork-io/sample-app-docker.git`
+1. Add the the Cloud Source Repository as a remote:
+   - `$ git remote google ssh://[EMAIL]@source.developers.google.com:2022/p/[PROJECT_ID]/r/[REPO_NAME]`
+   - **Note:** Be sure to replace the [EMAIL] (Google IAM user's address), [PROJECT_ID] and [REPO_NAME] with your values.
+1. Push the sample app to the Cloud Source Repository
+   - `$ git push --all google`
 
-After you've pushed the changes to GitHub, Cloud Build will automatically trigger a new build. You can view the build
-status directly in the [GCP console](https://console.cloud.google.com/cloud-build/builds).
+After you've pushed the changes to Google Source Repositories, Cloud Build will automatically trigger a new build. You
+can view the build status directly in the [GCP console](https://console.cloud.google.com/cloud-build/builds).
 
 ![Cloud Build History](_docs/gcp-build-history.png)
 
@@ -124,8 +115,8 @@ Or by using the `gcloud` CLI tool:
 $ gcloud builds list --limit=5
 ```
 
-During the build Cloud Build will install the sample app's dependencies, execute the tests, build a docker image and
-push it to the GCR registry.
+During the build Cloud Build will install the sample app's dependencies, execute the tests, build a docker image,
+push it to the GCR registry then create a deployment on the GKE cluster.
 
 ## Viewing the Deployment
 
