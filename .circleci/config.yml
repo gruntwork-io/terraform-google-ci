@@ -11,6 +11,7 @@ defaults: &defaults
     GOLANG_VERSION: 1.13
     K8S_VERSION: v1.10.0
     KUBECONFIG: /home/circleci/.kube/config
+    SAMPLE_APP_DIR: /home/circleci/sample-app-docker
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
@@ -65,7 +66,7 @@ jobs:
     - checkout
     - run:
         name: "Clone docker sample app repo"
-        command: "git clone git@github.com:gruntwork-io/sample-app-docker.git ~/sample-app-docker"
+        command: git clone git@github.com:gruntwork-io/sample-app-docker.git "${SAMPLE_APP_DIR}"
     - run: echo 'export PATH=$HOME/terraform:$HOME/packer:$PATH' >> $BASH_ENV
     - run:
         <<: *install_gruntwork_utils
