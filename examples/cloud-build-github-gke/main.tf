@@ -31,7 +31,7 @@ provider "google-beta" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_cloudbuild_trigger" "cloud_build_trigger" {
-  provider    = "google-beta"
+  provider    = google-beta
   description = "GitHub Repository Trigger ${var.github_owner}/${var.github_repository} (${var.branch_name})"
 
   github {

@@ -39,7 +39,7 @@ resource "google_sourcerepo_repository" "repo" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_cloudbuild_trigger" "cloud_build_trigger" {
-  provider    = "google-beta"
+  provider    = google-beta
   description = "Cloud Source Repository Trigger ${var.repository_name} (${var.branch_name})"
 
   trigger_template {
