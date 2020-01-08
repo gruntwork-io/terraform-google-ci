@@ -4,8 +4,7 @@ defaults: &defaults
     GRUNTWORK_INSTALLER_VERSION: v0.0.21
     TERRATEST_LOG_PARSER_VERSION: v0.13.13
     KUBERGRUNT_VERSION: v0.3.9
-    HELM_VERSION: v2.11.0
-    MODULE_CI_VERSION: v0.13.3
+    MODULE_CI_VERSION: v0.16.0
     TERRAFORM_VERSION: 0.12.9
     TERRAGRUNT_VERSION: NONE
     PACKER_VERSION: NONE
@@ -26,15 +25,6 @@ install_gruntwork_utils: &install_gruntwork_utils
       --go-version ${GOLANG_VERSION} \
       --go-src-path test
 
-install_helm_client: &install_helm_client
-  name: install helm client
-  command: |
-    # install helm client
-    curl -Lo helm.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz
-    tar -xvf helm.tar.gz
-    chmod +x linux-amd64/helm
-    sudo mv linux-amd64/helm /usr/local/bin/
-
 version: 2
 jobs:
   build:
@@ -43,14 +33,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - 'v1-dep-{{ checksum "test/go.sum" }}'
+          - gomod-{{ checksum "test/go.sum" }}
 
       # Install gruntwork utilities
       - run:
           <<: *install_gruntwork_utils
 
       - save_cache:
-          key: 'v1-dep-{{ checksum "test/go.sum" }}'
+          key: gomod-{{ checksum "test/go.sum" }}
           paths:
             - $HOME/go/src/
 
@@ -76,10 +66,6 @@ jobs:
     - run: echo 'export PATH=$HOME/terraform:$HOME/packer:$PATH' >> $BASH_ENV
     - run:
         <<: *install_gruntwork_utils
-
-    # Install helm
-    - run:
-        <<: *install_helm_client
 
     # Install kubergrunt
     - run:
