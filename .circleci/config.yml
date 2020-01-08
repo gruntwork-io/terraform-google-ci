@@ -6,10 +6,10 @@ defaults: &defaults
     KUBERGRUNT_VERSION: v0.3.9
     HELM_VERSION: v2.11.0
     MODULE_CI_VERSION: v0.13.3
-    TERRAFORM_VERSION: 0.12.7
+    TERRAFORM_VERSION: 0.12.9
     TERRAGRUNT_VERSION: NONE
     PACKER_VERSION: NONE
-    GOLANG_VERSION: 1.11.2
+    GOLANG_VERSION: 1.13
     K8S_VERSION: v1.10.0
     KUBECONFIG: /home/circleci/.kube/config
 
@@ -45,16 +45,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - dep-v1-{{ checksum "test/Gopkg.lock" }}
+          - 'v1-dep-{{ checksum "test/go.sum" }}'
 
       # Install gruntwork utilities
       - run:
           <<: *install_gruntwork_utils
 
       - save_cache:
-          key: dep-v1-{{ checksum "test/Gopkg.lock" }}
+          key: 'v1-dep-{{ checksum "test/go.sum" }}'
           paths:
-          - ./test/vendor
+            - $HOME/go/src/
 
       # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
       # execute automatically every time before you commit, ensuring the build never fails at this step!
