@@ -80,7 +80,7 @@ jobs:
         command: |
           sudo apt-get remove -y google-cloud-sdk
           sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
-          sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update beta kubectl
+          sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update beta kubectl docker-credential-gcr
     - run:
         name: configure kubectl
         command: |
