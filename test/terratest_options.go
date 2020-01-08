@@ -61,6 +61,7 @@ func createTestGKEClusterTerraformOptions(
 		"region":                       region,
 		"location":                     region,
 		"project":                      project,
+		"gcr_region":                   lookupMultiRegion(region),
 		"repository_name":              repoName,
 		"cluster_name":                 gkeClusterName,
 		"cluster_service_account_name": gkeServiceAccountName,
@@ -72,4 +73,19 @@ func createTestGKEClusterTerraformOptions(
 	}
 
 	return &terratestOptions
+}
+
+// extractGCRRegion returns the appropriate multi-region depending on the GCP region passed in.
+// https://cloud.google.com/storage/docs/locations#location-mr
+func lookupMultiRegion(region string) string {
+	parts := strings.Split(region, "-")
+
+	switch mr := parts[0]; mr {
+	case "europe":
+		return "eu"
+	case "asia":
+		return "asia"
+	default:
+		return "us"
+	}
 }
