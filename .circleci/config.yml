@@ -97,6 +97,8 @@ jobs:
           # required for terraform and terratest to authenticate correctly
           echo $GCLOUD_SERVICE_KEY > /tmp/gcloud.json
           export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcloud.json"
+          # required to push to cloud source repositories
+          git config --global credential.'https://source.developers.google.com'.helper gcloud.sh
           # run the tests
           run-go-tests --path test --timeout 60m | tee /tmp/logs/all.log
         no_output_timeout: 3600s
