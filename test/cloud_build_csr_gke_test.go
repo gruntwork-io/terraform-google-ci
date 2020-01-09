@@ -141,8 +141,10 @@ func TestCloudBuildCsrGke(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "wait_for_build", func() {
+		gkeClusterTerratestOptions := test_structure.LoadTerraformOptions(t, workingDir)
+		triggerID := terraform.Output(t, gkeClusterTerratestOptions, "trigger_id")
 		project := test_structure.LoadString(t, workingDir, "project")
-		builds := gcp.GetBuildsForTrigger(t, project, "8cc7d9b6-c7d9-49ff-860d-37541c813985")
+		builds := gcp.GetBuildsForTrigger(t, project, triggerID)
 		// assume the first build returned is the one we triggered.
 		buildID := builds[0].GetId()
 		verifyBuildWasSuccessful(t, project, buildID)
