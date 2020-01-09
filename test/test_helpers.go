@@ -6,11 +6,51 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gruntwork-io/terratest/modules/gcp"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/stretchr/testify/assert"
+	cloudbuildpb "google.golang.org/genproto/googleapis/devtools/cloudbuild/v1"
 )
+
+func verifyBuildWasSuccessful(t *testing.T, projectID string, buildID string) {
+	statusMsg := fmt.Sprintf("Wait for build (%s) to complete.", buildID)
+	retries := 30
+	sleepBetweenRetries := 20 * time.Second
+
+	message, err := retry.DoWithRetryE(
+		t,
+		statusMsg,
+		retries,
+		sleepBetweenRetries,
+		func() (string, error) {
+			build, err := gcp.GetBuildE(t, projectID, buildID)
+			if err != nil {
+				return "", err
+			}
+
+			if build.GetStatus() == cloudbuildpb.Build_QUEUED {
+				return "", errors.New("Build is queued")
+			}
+
+			if build.GetStatus() == cloudbuildpb.Build_WORKING {
+				return "", errors.New("Build is executing")
+			}
+
+			if build.GetStatus() != cloudbuildpb.Build_SUCCESS {
+				return "", errors.New("Build is not successful")
+			}
+
+			return "Build was successful", nil
+		},
+	)
+	if err != nil {
+		logger.Logf(t, "Error waiting for expected number of nodes: %s", err)
+		t.Fatal(err)
+	}
+	logger.Logf(t, message)
+}
 
 // kubeWaitUntilNumNodes continuously polls the Kubernetes cluster until there are the expected number of nodes
 // registered (regardless of readiness).
