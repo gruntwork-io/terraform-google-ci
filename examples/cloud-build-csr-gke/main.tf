@@ -118,7 +118,7 @@ module "gcr_registry" {
 
 module "gke_cluster" {
   # Use a version of the gke-cluster module that supports Terraform 0.12
-  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.3.8"
+  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.4.0"
 
   name = var.cluster_name
 
