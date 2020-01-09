@@ -26,10 +26,9 @@ import (
 // 3. Waits for the GKE nodes to be available.
 // 4. Adds a Git remote to the sample app repo that points to the Cloud Source Repository.
 // 5. Commits a test file and pushes it to trigger a build.
-// 6. Polls the Cloud Build API to get the External IP from the deployed service.
-// 7. Checks the K8s service is returning "Hello World!" and a HTTP 200.
-// 8. Cleans up all of the resources using Terraform destroy.
-// 9. Ensures all of the GCR images are removed.
+// 6. Polls the Cloud Build API to check the build was successful.
+// 7. Cleans up all of the resources using Terraform destroy.
+// 8. Ensures all of the GCR images are removed.
 func TestCloudBuildCsrGke(t *testing.T) {
 	t.Parallel()
 
@@ -41,7 +40,6 @@ func TestCloudBuildCsrGke(t *testing.T) {
 	//os.Setenv("SKIP_wait_for_workers", "true")
 	//os.Setenv("SKIP_trigger_build", "true")
 	//os.Setenv("SKIP_wait_for_build", "true")
-	//os.Setenv("SKIP_wait_for_service", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
 	// Create a directory path that won't conflict
@@ -151,5 +149,5 @@ func TestCloudBuildCsrGke(t *testing.T) {
 		test_structure.SaveString(t, workingDir, "buildID", buildID)
 	})
 
-	// TODO - check External IP / HTTP service on GKE cluster
+	// TODO - check External IP / HTTP service 200 on GKE cluster
 }
