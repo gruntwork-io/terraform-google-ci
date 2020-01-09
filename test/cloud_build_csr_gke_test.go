@@ -18,6 +18,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// The following test ensures the Cloud Build / Cloud Source Repositories example works as expected. It performs the
+// following test logic:
+//
+// 1. Clones a Docker Sample App to its own folder.
+// 2. Deploys all of the Cloud Build / Cloud Source Repositories resources using Terraform.
+// 3. Waits for the GKE nodes to be available.
+// 4. Adds a Git remote to the sample app repo that points to the Cloud Source Repository.
+// 5. Commits a test file and pushes it to trigger a build.
+// 6. Polls the Cloud Build API to get the External IP from the deployed service.
+// 7. Checks the K8s service is returning "Hello World!" and a HTTP 200.
+// 8. Cleans up all of the resources using Terraform destroy.
+// 9. Ensures all of the GCR images are removed.
 func TestCloudBuildCsrGke(t *testing.T) {
 	t.Parallel()
 
@@ -27,6 +39,9 @@ func TestCloudBuildCsrGke(t *testing.T) {
 	//os.Setenv("SKIP_terraform_apply", "true")
 	//os.Setenv("SKIP_configure_kubectl", "true")
 	//os.Setenv("SKIP_wait_for_workers", "true")
+	//os.Setenv("SKIP_trigger_build", "true")
+	//os.Setenv("SKIP_wait_for_build", "true")
+	//os.Setenv("SKIP_wait_for_service", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
 	// Create a directory path that won't conflict
@@ -92,21 +107,22 @@ func TestCloudBuildCsrGke(t *testing.T) {
 		verifyGkeNodesAreReady(t, kubectlOptions)
 	})
 
-	// trigger a build
 	test_structure.RunTestStage(t, "trigger_build", func() {
 		gkeClusterTerratestOptions := test_structure.LoadTerraformOptions(t, workingDir)
 		project := test_structure.LoadString(t, workingDir, "project")
 		repoName := gkeClusterTerratestOptions.Vars["repository_name"].(string)
 
-		// add the cloud source repository as a git remote
+		// add the cloud source repository as a git remote if it doesn't already exist
 		// `git remote add google https://source.developers.google.com/p/[PROJECT_ID]/r/[REPO_NAME]`
-		cmd := shell.Command{
-			Command:    "git",
-			Args:       []string{"remote", "add", "google", fmt.Sprintf("https://source.developers.google.com/p/%s/r/%s", project, repoName)},
-			WorkingDir: os.Getenv("SAMPLE_APP_DIR"),
-		}
+		if _, err := os.Stat(fmt.Sprintf("%s/.git/refs/remotes/google", os.Getenv("SAMPLE_APP_DIR"))); os.IsNotExist(err) {
+			cmd := shell.Command{
+				Command:    "git",
+				Args:       []string{"remote", "add", "google", fmt.Sprintf("https://source.developers.google.com/p/%s/r/%s", project, repoName)},
+				WorkingDir: os.Getenv("SAMPLE_APP_DIR"),
+			}
 
-		shell.RunCommand(t, cmd)
+			shell.RunCommand(t, cmd)
+		}
 
 		// write a test file
 		date := []byte(fmt.Sprintf("%s\n", time.Now().String()))
@@ -119,10 +135,21 @@ func TestCloudBuildCsrGke(t *testing.T) {
 		// commit and push
 		cmd2 := shell.Command{
 			Command:    "git-add-commit-push",
-			Args:       []string{"--path", testFile, "--message", "triggering a build", "--skip-ci-flag", ""},
+			Args:       []string{"--remote-name", "google", "--path", testFile, "--message", "triggering a build", "--skip-git-pull", "--skip-ci-flag", ""},
 			WorkingDir: os.Getenv("SAMPLE_APP_DIR"),
 		}
 
 		shell.RunCommand(t, cmd2)
 	})
+
+	test_structure.RunTestStage(t, "wait_for_build", func() {
+		project := test_structure.LoadString(t, workingDir, "project")
+		builds := gcp.GetBuildsForTrigger(t, project, "8cc7d9b6-c7d9-49ff-860d-37541c813985")
+		// assume the first build returned is the one we triggered.
+		buildID := builds[0].GetId()
+		verifyBuildWasSuccessful(t, project, buildID)
+		test_structure.SaveString(t, workingDir, "buildID", buildID)
+	})
+
+	// TODO - check External IP / HTTP service on GKE cluster
 }
