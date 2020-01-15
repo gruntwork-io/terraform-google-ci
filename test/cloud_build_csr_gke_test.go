@@ -22,7 +22,7 @@ import (
 // following test logic:
 //
 // 1. Clones a Docker Sample App to its own folder.
-// 2. Deploys all of the Cloud Build / Cloud Source Repositories resources using Terraform.
+// 2. Deploys all of the example resources using Terraform.
 // 3. Waits for the GKE nodes to be available.
 // 4. Adds a Git remote to the sample app repo that points to the Cloud Source Repository.
 // 5. Commits a test file and pushes it to trigger a build.
@@ -68,6 +68,14 @@ func TestCloudBuildCsrGke(t *testing.T) {
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
+		project := test_structure.LoadString(t, workingDir, "project")
+		buildID := test_structure.LoadString(t, workingDir, "buildID")
+
+		build := gcp.GetBuild(t, project, buildID)
+		for _, image := range build.GetImages() {
+			gcp.DeleteGCRRepo(t, image)
+		}
+
 		gkeClusterTerratestOptions := test_structure.LoadTerraformOptions(t, workingDir)
 		terraform.Destroy(t, gkeClusterTerratestOptions)
 
