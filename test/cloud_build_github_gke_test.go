@@ -137,10 +137,7 @@ func TestCloudBuildGitHubGke(t *testing.T) {
 		gkeClusterTerratestOptions := test_structure.LoadTerraformOptions(t, workingDir)
 		triggerID := terraform.Output(t, gkeClusterTerratestOptions, "trigger_id")
 		project := test_structure.LoadString(t, workingDir, "project")
-		builds := gcp.GetBuildsForTrigger(t, project, triggerID)
-		// assume the first build returned is the one we triggered.
-		buildID := builds[0].GetId()
-		verifyBuildWasSuccessful(t, project, buildID)
+		buildID := verifyBuildWasSuccessful(t, project, triggerID)
 		test_structure.SaveString(t, workingDir, "buildID", buildID)
 	})
 }
