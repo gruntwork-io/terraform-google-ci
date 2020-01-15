@@ -1,3 +1,8 @@
+output "trigger_id" {
+  description = "The unique identifier for the Cloud Build trigger."
+  value       = google_cloudbuild_trigger.cloud_build_trigger.trigger_id
+}
+
 output "registry_url" {
   description = "The URL at which the GCR registry can be accessed."
   value       = module.gcr_registry.registry_url
