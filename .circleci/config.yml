@@ -24,7 +24,7 @@ install_gruntwork_utils: &install_gruntwork_utils
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION} \
-      --go-src-path ./test
+      --go-src-path ./foo
 
 version: 2
 jobs:
