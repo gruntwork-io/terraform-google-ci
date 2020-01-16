@@ -15,6 +15,9 @@ defaults: &defaults
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
+  # we deliberately set the go src path to a dummy directory to avoid running `go get -d -v -t ./test/...`
+  # this is currently causing no-import issues when downloading the `cloud.google.com/go/cloudbuild/apiv1/v2`
+  # package referenced by terratest.
   command: |
     curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
