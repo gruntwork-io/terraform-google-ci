@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# DEPLOY A GKE PRIVATE CLUSTER W/ TILLER IN GOOGLE CLOUD PLATFORM
-# This is an example of how to use the gke-cluster module to deploy a private Kubernetes cluster in GCP
-# TODO - update
+# DEPLOY A CI/CD PIPELINE USING CLOUD BUILD, GKE AND CLOUD SOURCE REPOSITORIES IN GOOGLE CLOUD PLATFORM
+# This is an example of how to setup an automated CI/CD pipeline in GCP using Cloud Build and a GKE cluster that is
+# triggered by Cloud Source Repositories.
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
