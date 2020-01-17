@@ -67,6 +67,9 @@ jobs:
     steps:
     - attach_workspace:
         at: /home/circleci
+    - add_ssh_keys:
+        fingerprints:
+          - "ff:86:1b:40:5e:32:3c:a9:30:cc:96:55:d0:c6:61:ec"
     - checkout
     - run:
         name: "Clone docker sample app repo"
