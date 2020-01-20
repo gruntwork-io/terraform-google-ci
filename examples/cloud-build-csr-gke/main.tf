@@ -15,13 +15,13 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "google" {
-  version = "~> 2.10"
+  version = "~> 3.4"
   project = var.project
   region  = var.region
 }
 
 provider "google-beta" {
-  version = "~> 2.10"
+  version = "~> 3.4"
   project = var.project
   region  = var.region
 }

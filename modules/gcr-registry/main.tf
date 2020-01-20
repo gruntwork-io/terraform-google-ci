@@ -20,12 +20,12 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "google" {
-  version = "~> 2.10"
+  version = "~> 3.4"
   project = var.project
 }
 
 provider "google-beta" {
-  version = "~> 2.10"
+  version = "~> 3.4"
   project = var.project
 }
 
