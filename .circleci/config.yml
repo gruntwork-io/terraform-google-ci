@@ -4,38 +4,31 @@ defaults: &defaults
     GRUNTWORK_INSTALLER_VERSION: v0.0.21
     TERRATEST_LOG_PARSER_VERSION: v0.13.13
     KUBERGRUNT_VERSION: v0.3.9
-    HELM_VERSION: v2.11.0
-    MODULE_CI_VERSION: v0.13.3
-    TERRAFORM_VERSION: 0.12.7
+    MODULE_CI_VERSION: v0.16.3
+    TERRAFORM_VERSION: 0.12.9
     TERRAGRUNT_VERSION: NONE
     PACKER_VERSION: NONE
-    GOLANG_VERSION: 1.11.2
+    GOLANG_VERSION: 1.13
     K8S_VERSION: v1.10.0
     KUBECONFIG: /home/circleci/.kube/config
+    SAMPLE_APP_DIR: /home/circleci/sample-app-docker
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
+  # we deliberately set the go src path to a dummy directory to avoid running `go get -d -v -t ./test/...`
+  # this is currently causing no-import issues when downloading the `cloud.google.com/go/cloudbuild/apiv1/v2`
+  # package referenced by terratest.
   command: |
     curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --module-name "git-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
     configure-environment-for-gruntwork-module \
-      --circle-ci-2-machine-executor \
       --terraform-version ${TERRAFORM_VERSION} \
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
-      --use-go-dep \
       --go-version ${GOLANG_VERSION} \
-      --go-src-path test
-
-install_helm_client: &install_helm_client
-  name: install helm client
-  command: |
-    # install helm client
-    curl -Lo helm.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz
-    tar -xvf helm.tar.gz
-    chmod +x linux-amd64/helm
-    sudo mv linux-amd64/helm /usr/local/bin/
+      --go-src-path ./foo
 
 version: 2
 jobs:
@@ -45,16 +38,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - dep-v1-{{ checksum "test/Gopkg.lock" }}
+          - gomod-{{ checksum "test/go.sum" }}
 
       # Install gruntwork utilities
       - run:
           <<: *install_gruntwork_utils
 
       - save_cache:
-          key: dep-v1-{{ checksum "test/Gopkg.lock" }}
+          key: gomod-{{ checksum "test/go.sum" }}
           paths:
-          - ./test/vendor
+            - $HOME/go/src/
 
       # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
       # execute automatically every time before you commit, ensuring the build never fails at this step!
@@ -74,14 +67,16 @@ jobs:
     steps:
     - attach_workspace:
         at: /home/circleci
+    - add_ssh_keys:
+        fingerprints:
+          - "ff:86:1b:40:5e:32:3c:a9:30:cc:96:55:d0:c6:61:ec"
     - checkout
+    - run:
+        name: "Clone docker sample app repo"
+        command: git clone git@github.com:gruntwork-io/sample-app-docker.git "${SAMPLE_APP_DIR}"
     - run: echo 'export PATH=$HOME/terraform:$HOME/packer:$PATH' >> $BASH_ENV
     - run:
         <<: *install_gruntwork_utils
-
-    # Install helm
-    - run:
-        <<: *install_helm_client
 
     # Install kubergrunt
     - run:
@@ -93,7 +88,7 @@ jobs:
         command: |
           sudo apt-get remove -y google-cloud-sdk
           sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
-          sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update beta kubectl
+          sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update beta kubectl docker-credential-gcr
     - run:
         name: configure kubectl
         command: |
@@ -110,6 +105,8 @@ jobs:
           # required for terraform and terratest to authenticate correctly
           echo $GCLOUD_SERVICE_KEY > /tmp/gcloud.json
           export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcloud.json"
+          # required to push to cloud source repositories
+          git config --global credential.'https://source.developers.google.com'.helper gcloud.sh
           # run the tests
           run-go-tests --path test --timeout 60m | tee /tmp/logs/all.log
         no_output_timeout: 3600s

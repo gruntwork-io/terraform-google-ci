@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# DEPLOY A GKE PRIVATE CLUSTER W/ TILLER IN GOOGLE CLOUD PLATFORM
-# This is an example of how to use the gke-cluster module to deploy a private Kubernetes cluster in GCP
-# TODO - update
+# DEPLOY A CI/CD PIPELINE USING CLOUD BUILD, GKE AND CLOUD SOURCE REPOSITORIES IN GOOGLE CLOUD PLATFORM
+# This is an example of how to setup an automated CI/CD pipeline in GCP using Cloud Build and a GKE cluster that is
+# triggered by Cloud Source Repositories.
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
@@ -39,7 +39,7 @@ resource "google_sourcerepo_repository" "repo" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_cloudbuild_trigger" "cloud_build_trigger" {
-  provider    = "google-beta"
+  provider    = google-beta
   description = "Cloud Source Repository Trigger ${var.repository_name} (${var.branch_name})"
 
   trigger_template {
@@ -118,7 +118,7 @@ module "gcr_registry" {
 
 module "gke_cluster" {
   # Use a version of the gke-cluster module that supports Terraform 0.12
-  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.3.8"
+  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.4.0"
 
   name = var.cluster_name
 
@@ -222,7 +222,7 @@ resource "google_container_node_pool" "node_pool" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "gke_service_account" {
-  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-service-account?ref=v0.3.8"
+  source = "git::git@github.com:gruntwork-io/terraform-google-gke.git//modules/gke-service-account?ref=v0.4.0"
 
   name        = var.cluster_service_account_name
   project     = var.project
@@ -244,7 +244,7 @@ resource "google_storage_bucket_iam_member" "member" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network" {
-  source = "github.com/gruntwork-io/terraform-google-network.git//modules/vpc-network?ref=v0.2.1"
+  source = "github.com/gruntwork-io/terraform-google-network.git//modules/vpc-network?ref=v0.2.8"
 
   name_prefix = "${var.cluster_name}-network-${random_string.suffix.result}"
   project     = var.project

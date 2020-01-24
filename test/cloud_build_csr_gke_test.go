@@ -18,17 +18,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The following test ensures the Cloud Build / GitHub example works as expected. It performs the
+// The following test ensures the Cloud Build / Cloud Source Repositories example works as expected. It performs the
 // following test logic:
 //
 // 1. Clones a Docker Sample App to its own folder.
 // 2. Deploys all of the example resources using Terraform.
 // 3. Waits for the GKE nodes to be available.
+// 4. Adds a Git remote to the sample app repo that points to the Cloud Source Repository.
 // 5. Commits a test file and pushes it to trigger a build.
 // 6. Polls the Cloud Build API to check the build was successful.
 // 7. Cleans up all of the resources using Terraform destroy.
 // 8. Ensures all of the GCR images are removed.
-func TestCloudBuildGitHubGke(t *testing.T) {
+func TestCloudBuildCsrGke(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment any of the following to skip that section during the test
@@ -47,20 +48,18 @@ func TestCloudBuildGitHubGke(t *testing.T) {
 	test_structure.RunTestStage(t, "create_test_copy_of_examples", func() {
 		testFolder := test_structure.CopyTerraformFolderToTemp(t, "..", "examples")
 		logger.Logf(t, "path to test folder %s\n", testFolder)
-		terraformModulePath := filepath.Join(testFolder, "cloud-build-github-gke")
-		test_structure.SaveString(t, workingDir, "cloudBuildGitHubGkeTerraformModulePath", terraformModulePath)
+		terraformModulePath := filepath.Join(testFolder, "cloud-build-csr-gke")
+		test_structure.SaveString(t, workingDir, "cloudBuildCsrGkeTerraformModulePath", terraformModulePath)
 	})
 
 	test_structure.RunTestStage(t, "create_terratest_options", func() {
-		cloudBuildGitHubGkeTerraformModulePath := test_structure.LoadString(t, workingDir, "cloudBuildGitHubGkeTerraformModulePath")
+		cloudBuildCsrGkeTerraformModulePath := test_structure.LoadString(t, workingDir, "cloudBuildCsrGkeTerraformModulePath")
 		tmpKubeConfigPath := k8s.CopyHomeKubeConfigToTemp(t)
 		kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
 		uniqueID := random.UniqueId()
 		project := gcp.GetGoogleProjectIDFromEnvVar(t)
 		region := gcp.GetRandomRegion(t, project, nil, nil)
-		githubOrg := "gruntwork-io"
-		githubRepo := "sample-app-docker"
-		gkeClusterTerratestOptions := createTestGitHubTerraformOptions(t, uniqueID, project, region, githubOrg, githubRepo, cloudBuildGitHubGkeTerraformModulePath)
+		gkeClusterTerratestOptions := createTestGKEClusterTerraformOptions(t, uniqueID, project, region, cloudBuildCsrGkeTerraformModulePath)
 		test_structure.SaveString(t, workingDir, "uniqueID", uniqueID)
 		test_structure.SaveString(t, workingDir, "project", project)
 		test_structure.SaveString(t, workingDir, "region", region)
@@ -115,6 +114,22 @@ func TestCloudBuildGitHubGke(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "trigger_build", func() {
+		gkeClusterTerratestOptions := test_structure.LoadTerraformOptions(t, workingDir)
+		project := test_structure.LoadString(t, workingDir, "project")
+		repoName := gkeClusterTerratestOptions.Vars["repository_name"].(string)
+
+		// add the cloud source repository as a git remote if it doesn't already exist
+		// `git remote add google https://source.developers.google.com/p/[PROJECT_ID]/r/[REPO_NAME]`
+		if _, err := os.Stat(fmt.Sprintf("%s/.git/refs/remotes/google", os.Getenv("SAMPLE_APP_DIR"))); os.IsNotExist(err) {
+			cmd := shell.Command{
+				Command:    "git",
+				Args:       []string{"remote", "add", "google", fmt.Sprintf("https://source.developers.google.com/p/%s/r/%s", project, repoName)},
+				WorkingDir: os.Getenv("SAMPLE_APP_DIR"),
+			}
+
+			shell.RunCommand(t, cmd)
+		}
+
 		// write a test file
 		date := []byte(fmt.Sprintf("%s\n", time.Now().String()))
 		testFile := fmt.Sprintf("%s/auto-committed.txt", os.Getenv("SAMPLE_APP_DIR"))
@@ -124,13 +139,13 @@ func TestCloudBuildGitHubGke(t *testing.T) {
 		}
 
 		// commit and push
-		cmd := shell.Command{
+		cmd2 := shell.Command{
 			Command:    "git-add-commit-push",
-			Args:       []string{"--remote-name", "origin", "--path", testFile, "--message", "triggering a build", "--skip-git-pull", "--skip-ci-flag", ""},
+			Args:       []string{"--remote-name", "google", "--path", testFile, "--message", "triggering a build", "--skip-git-pull", "--skip-ci-flag", ""},
 			WorkingDir: os.Getenv("SAMPLE_APP_DIR"),
 		}
 
-		shell.RunCommand(t, cmd)
+		shell.RunCommand(t, cmd2)
 	})
 
 	test_structure.RunTestStage(t, "wait_for_build", func() {
@@ -140,4 +155,6 @@ func TestCloudBuildGitHubGke(t *testing.T) {
 		buildID := verifyBuildWasSuccessful(t, project, triggerID)
 		test_structure.SaveString(t, workingDir, "buildID", buildID)
 	})
+
+	// TODO - check External IP / HTTP service 200 on GKE cluster
 }
