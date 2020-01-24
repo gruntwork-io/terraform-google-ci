@@ -68,7 +68,7 @@ func createTestGitHubTerraformOptions(
 	return &terratestOptions
 }
 
-// extractGCRRegion returns the appropriate multi-region depending on the GCP region passed in.
+// lookupMultiRegion returns the appropriate multi-region depending on the GCP region passed in.
 // https://cloud.google.com/storage/docs/locations#location-mr
 func lookupMultiRegion(region string) string {
 	parts := strings.Split(region, "-")
