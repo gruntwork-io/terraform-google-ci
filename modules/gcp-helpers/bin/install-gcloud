@@ -1,0 +1,83 @@
+#!/bin/bash
+#
+# This script is meant to be run in a CircleCI job to install the latest version of the Google Cloud SDK CLI tool.
+#
+# CircleCI may have gcloud installed already depending on the type of executor used, but we recommend using the
+# latest version to ensure the tests work correctly by following the instructions here: https://cloud.google.com/sdk/gcloud.
+
+set -e
+
+function print_usage {
+  echo
+  echo "Usage: install-gcloud [OPTIONS]"
+  echo
+  echo "This script is meant to be run in a CircleCI job to install the latest version of the Google Cloud SDK CLI tool."
+  echo "Currently, only Ubuntu and Debian are supported."
+  echo
+  echo "Options:"
+  echo
+  echo -e "  --help\t\tShow this help text and exit."
+  echo
+  echo "Example:"
+  echo
+  echo "  install-gcloud"
+}
+
+function assert_ubuntu {
+  local os_id
+  os_id="$(lsb_release -i)"
+
+  if [[ ! $os_id =~ "Ubuntu" ]]; then
+    echo "ERROR: Runtime environment is not Ubuntu (detected $os_id)"
+    exit 1
+  fi
+}
+
+function assert_is_installed {
+  local readonly name="$1"
+
+  if [[ ! $(command -v ${name}) ]]; then
+    echo "ERROR: The binary '$name' is required by this script but is not installed or in the system's PATH."
+    exit 1
+  fi
+}
+
+function install_gcloud {
+  echo "Installing the Google Cloud SDK CLI"
+  echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  sudo apt-get install -y apt-transport-https ca-certificates gnupg
+  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+  sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+
+  # Sanity check
+  local installed_version
+  installed_version=$(gcloud version | grep SDK)
+  echo "The installed version is now $installed_version"
+}
+
+function install {
+  assert_is_installed "curl"
+  assert_ubuntu
+
+  while [[ $# > 0 ]]; do
+    local key="$1"
+
+    case "$key" in
+      --help)
+        print_usage
+        exit
+        ;;
+      *)
+        echo "ERROR: Unrecognized argument: $key"
+        print_usage
+        exit 1
+        ;;
+    esac
+
+    shift
+  done
+
+  install_gcloud
+}
+
+install "$@"
