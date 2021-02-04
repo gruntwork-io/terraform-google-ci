@@ -30,15 +30,6 @@ clean up.
 - Configure your GCP credentials using one of the [options supported by the Google Cloud SDK](https://cloud.google.com/sdk/docs/authorizing).
 
 
-### One-time setup
-
-Download Go dependencies:
-
-```
-cd test
-go mod download
-```
-
 
 ### Run all the tests
 
