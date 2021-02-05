@@ -9,8 +9,6 @@ env: &env
     TERRAGRUNT_VERSION: NONE
     PACKER_VERSION: NONE
     GOLANG_VERSION: 1.14
-    K8S_VERSION: v1.10.0
-    KUBECONFIG: /home/circleci/.kube/config
 
 defaults: &defaults
   machine: true
@@ -29,8 +27,7 @@ install_gruntwork_utils: &install_gruntwork_utils
       --terraform-version ${TERRAFORM_VERSION} \
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
-      --go-version ${GOLANG_VERSION} \
-      --go-src-path test
+      --go-version ${GOLANG_VERSION}
 
 configure_environment_for_gcp: &configure_environment_for_gcp
   name: configure environment for gcp
