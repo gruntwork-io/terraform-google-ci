@@ -5,6 +5,7 @@ env: &env
     GRUNTWORK_INSTALLER_VERSION: v0.0.33
     TERRATEST_LOG_PARSER_VERSION: v0.30.4
     MODULE_CI_VERSION: v0.29.2
+    MODULE_GCP_CI_VERSION: v0.1.1
     TERRAFORM_VERSION: 0.13.5
     TERRAGRUNT_VERSION: NONE
     PACKER_VERSION: NONE
@@ -22,7 +23,7 @@ install_gruntwork_utils: &install_gruntwork_utils
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
     gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
     # TODO: switch to the release version once this PR is merged.
-    gruntwork-install --module-name "gcp-helpers" --repo "https://github.com/gruntwork-io/terraform-google-ci" --branch "gcp-helpers"
+    gruntwork-install --module-name "gcp-helpers" --repo "https://github.com/gruntwork-io/terraform-google-ci" --tag "${MODULE_GCP_CI_VERSION}"
     configure-environment-for-gruntwork-module \
       --terraform-version ${TERRAFORM_VERSION} \
       --terragrunt-version ${TERRAGRUNT_VERSION} \
