@@ -9,7 +9,7 @@ This module contains helper scripts that automate common GCP tasks:
 You can install the helpers using the [Gruntwork Installer](https://github.com/gruntwork-io/gruntwork-installer):
 
 ```bash
-gruntwork-install --module-name "gcp-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "v0.0.1"
+gruntwork-install --module-name "gcp-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "v0.0.1"
 ```
 
 We recommend running this command in the `dependencies` section of `circle.yml`:
