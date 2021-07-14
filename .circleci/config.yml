@@ -12,7 +12,8 @@ env: &env
     GOLANG_VERSION: 1.14
 
 defaults: &defaults
-  machine: true
+  machine:
+    image: ubuntu-2004:202104-01
   <<: *env
 
 install_gruntwork_utils: &install_gruntwork_utils
