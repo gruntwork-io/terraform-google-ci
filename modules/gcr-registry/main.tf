@@ -9,23 +9,32 @@
 terraform {
   # The configuration for this backend will be filled in by Terragrunt
   backend "gcs" {}
+  required_providers {
+    # Use Terraform 0.12.x so that we can take advantage of the new language features and GCP functionality as a
+    # separate provider via https://github.com/terraform-providers/terraform-provider-google.
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 2.10"
+    }
 
-  # Use Terraform 0.12.x so that we can take advantage of the new language features and GCP functionality as a
-  # separate provider via https://github.com/terraform-providers/terraform-provider-google.
-  required_version = ">= 0.12.0"
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 2.10"
+    }
+  }
 }
+
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE GCP PROVIDERS
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "google" {
-  version = "~> 2.10"
   project = var.project
 }
 
 provider "google-beta" {
-  version = "~> 2.10"
   project = var.project
 }
 
