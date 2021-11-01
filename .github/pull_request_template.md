@@ -1,5 +1,5 @@
 <!--
-  Have any questions? Check out the contributing docs at ttps://docs.gruntwork.io/guides/contributing/, or
+  Have any questions? Check out the contributing docs at https://docs.gruntwork.io/guides/contributing/, or
   ask in this Pull Request and a Gruntwork core maintainer will be happy to help :)
   Note: Remember to add '[WIP]' to the beginning of the title if this PR is still a work-in-progress.
 -->
@@ -19,6 +19,8 @@
     - Create a stub for documentation including bullet points for how to use the feature, code snippets (including from happy path tests), etc.
 -->
 
+<!-- Important: Did you make any backwards incompatible changes? If yes, then you must write a migration guide! -->
+
 ## TODOs
 
 - [ ] Ensure the branch is named correctly with the issue number. e.g: `feature/new-vpc-endpoints-955` or `bug/missing-count-param-434`.
@@ -27,9 +29,9 @@
 - [ ] Run the pre-commit checks successfully.
 - [ ] Run the relevant tests successfully.
 - [ ] Ensure any 3rd party code adheres with our license policy: https://www.notion.so/gruntwork/Gruntwork-licenses-and-open-source-usage-policy-f7dece1f780341c7b69c1763f22b1378
-- [ ] If necessary, release a new version of this repo.
-- [ ] If there were backwards incompatible changes, include a migration guie in the release notes.
-- [ ] _Gruntwork staff only._ Add to the next version of the monthly newsletter (see https://www.notion.so/gruntwork/Monthly-Newsletter-9198cbe7f8914d4abce23dca7b435f43).
+- [ ] _Maintainers Only._ If necessary, release a new version of this repo.
+- [ ] _Maintainers Only._ If there were backwards incompatible changes, include a migration guide in the release notes.
+- [ ] _Maintainers Only._ Add to the next version of the monthly newsletter (see https://www.notion.so/gruntwork/Monthly-Newsletter-9198cbe7f8914d4abce23dca7b435f43).
 
 
 ## Related Issues
