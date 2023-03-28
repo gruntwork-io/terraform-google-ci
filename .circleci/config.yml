@@ -123,14 +123,16 @@ workflows:
     jobs:
       - setup:
           context:
-            - Gruntwork GCP
+            - GCP__automated-tests
+            - GITHUB__PAT__gruntwork-ci
           filters:
             tags:
               only: /^v.*/
 
       - test:
           context:
-            - Gruntwork GCP
+            - GCP__automated-tests
+            - GITHUB__PAT__gruntwork-ci
           requires:
             - setup
           filters:
